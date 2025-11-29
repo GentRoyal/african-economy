@@ -743,7 +743,7 @@ def main():
                         with st.spinner("🤔 Analyzing your question..."):
                             ans = get_ai_insights(q, df_filtered, api_key, selected)
                             st.session_state.chat_history.append({"q": q, "a": ans})
-                            # st.rerun()
+                            st.rerun()
                 
                 # Token counter with progress bar
                 total_tokens = sum(len(msg['q']) + len(msg['a']) for msg in st.session_state.chat_history) // 4
@@ -753,7 +753,7 @@ def main():
                 
                 if st.button("🔄 Clear Chat History"):
                     st.session_state.chat_history = []
-                    # st.rerun()
+                    st.rerun()
         
         with tabs[2]:  # Trend Analysis
             st.markdown('<div class="section-header">Economic Trend Analysis</div>', unsafe_allow_html=True)
