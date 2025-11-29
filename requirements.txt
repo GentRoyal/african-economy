@@ -1,0 +1,6 @@
+streamlit
+pandas
+plotly
+datetime
+numpy
+groq
