@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime
 import numpy as np
-from groq import Groqio
+from groq import Groq
 
 try:
     from prophet import Prophet
