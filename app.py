@@ -433,56 +433,6 @@ def get_ai_insights(question, df, api_key, selected_countries):
     except Exception as e:
         return f"Error: {str(e)}"
 
-def create_correlation_heatmap(df, countries, indicator):
-    pivot_data = df[(df['Country'].isin(countries)) & (df['Indicator'] == indicator)]\
-        .pivot_table(index='Time', columns='Country', values='Amount')
-    
-    if pivot_data.empty or len(pivot_data) < 2:
-        return None
-    
-    corr = pivot_data.corr()
-
-    # Convert corr values to text for annotation
-    text_labels = [[str(round(val, 2)) for val in row] for row in corr.values]
-
-    fig = go.Figure(data=go.Heatmap(
-        z=corr.values,
-        x=corr.columns,
-        y=corr.columns,
-        colorscale='RdBu',
-        zmid=0,
-        colorbar=dict(title="Correlation"),
-        text=text_labels,
-        texttemplate="%{text}",
-        textfont={"size":12, "color":"black"},
-    ))
-
-    fig.update_layout(
-        title=f'{indicator} - Correlation Matrix',
-        height=500
-    )
-    return fig
-
-def create_box_plot(df, countries, indicator):
-    """Create distribution box plot"""
-    plot_data = df[(df['Country'].isin(countries)) & (df['Indicator'] == indicator)]
-    if len(plot_data) == 0:
-        return None
-    
-    fig = go.Figure()
-    for country in countries:
-        country_data = plot_data[plot_data['Country'] == country]
-        if len(country_data) > 0:
-            fig.add_trace(go.Box(y=country_data['Amount'], name=country, boxmean='sd'))
-    
-    fig.update_layout(
-        title=f'{indicator} - Distribution by Country', 
-        yaxis_title='Value', 
-        height=500,
-        hovermode='y unified'
-    )
-    return fig
-
 def predict_downturn(df, country):
     """Predict economic downturn risk"""
     gdp = df[(df['Country'] == country) & (df['Indicator'] == 'GDP Growth Rate')].sort_values('Time')
@@ -774,7 +724,7 @@ def main():
             with col2:
                 chart_type = st.radio(
                     "📈 Visualization Type", 
-                    ["Line Chart", "Correlation Map", "Distribution"], 
+                    ["Line Chart"], 
                     horizontal=False,
                     help="Select how you want to view the data"
                 )
@@ -822,36 +772,6 @@ def main():
                                 st.markdown(f'<div class="info-card">🤖 <strong>AI Insight:</strong> {insight}</div>', unsafe_allow_html=True)
                 else:
                     st.warning(f"⚠️ No data available for **{ind}** in the selected countries and time period.")
-            
-            elif chart_type == "Correlation Map":
-                hm = create_correlation_heatmap(df_filtered, selected, ind)
-                if hm:
-                    st.plotly_chart(hm, width='stretch')
-                    st.caption("💡 Values closer to 1 (red) indicate strong positive correlation, while values closer to -1 (blue) indicate negative correlation.")
-                    
-                    # Generate AI insight
-                    if api_key:
-                        with st.spinner("🤖 Generating AI insight..."):
-                            insight = generate_chart_insight(df_filtered, selected, ind, chart_type, api_key)
-                            if insight:
-                                st.markdown(f'<div class="info-card">🤖 <strong>AI Insight:</strong> {insight}</div>', unsafe_allow_html=True)
-                else:
-                    st.info("ℹ️ Insufficient data for correlation analysis. Need at least 2 countries with overlapping data points.")
-            
-            else:  # Distribution
-                bp = create_box_plot(df_filtered, selected, ind)
-                if bp:
-                    st.plotly_chart(bp, width='stretch')
-                    st.caption("💡 The box shows the quartile ranges, while the whiskers show the data distribution. Outliers appear as individual points.")
-                    
-                    # Generate AI insight
-                    if api_key:
-                        with st.spinner("🤖 Generating AI insight..."):
-                            insight = generate_chart_insight(df_filtered, selected, ind, chart_type, api_key)
-                            if insight:
-                                st.markdown(f'<div class="info-card">🤖 <strong>AI Insight:</strong> {insight}</div>', unsafe_allow_html=True)
-                else:
-                    st.info("ℹ️ Insufficient data for distribution analysis.")
         
         with tabs[3]:  # Forecasting
             st.markdown('<div class="section-header">Economic Forecasting Engine</div>', unsafe_allow_html=True)
